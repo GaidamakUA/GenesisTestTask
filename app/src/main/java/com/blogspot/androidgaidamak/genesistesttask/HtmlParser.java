@@ -1,10 +1,11 @@
 package com.blogspot.androidgaidamak.genesistesttask;
 
 import android.content.Context;
-import android.os.Build;
+import android.content.Intent;
+import android.net.Uri;
 import android.text.Html;
 import android.util.Log;
-import android.util.Xml;
+import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -17,11 +18,6 @@ import com.blogspot.androidgaidamak.genesistesttask.network.VolleySingleton;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.io.StringReader;
 
 /**
  * Created by gaidamak on 6/11/15.
@@ -45,7 +41,7 @@ public class HtmlParser {
         }
     }
 
-    private void handleTag(Element element) {
+    private void handleTag(final Element element) {
         Log.v(TAG, "element=" + element.nodeName());
         Log.v(TAG, "children=" + element.children().size());
 
@@ -79,6 +75,17 @@ public class HtmlParser {
             String imageSrc = image.attr("src");
             networkImageView.setImageUrl(imageSrc,
                     VolleySingleton.getInstance(mContext).getImageLoader());
+
+            networkImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String url = element.attr("href");
+
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse(url));
+                    mContext.startActivity(i);
+                }
+            });
         } else if (element.nodeName().equals("iframe")) {
             Log.v(TAG, "outerHtml=" + element.outerHtml());
             int videoWidth = Integer.parseInt(element.attr("width"));
@@ -90,7 +97,7 @@ public class HtmlParser {
             webView.getSettings().setAllowFileAccess(true);
             webView.setWebChromeClient(new WebChromeClient());
 
-            mLinearLayout.addView(webView);
+            mLinearLayout.addView(webView, videoWidth, videoHeight);
             webView.loadData("<iframe frameborder=\"0\" height=\"315\" src=\"//www.youtube.com/embed/yF0yPOhcHIk\" width=\"420\"></iframe>", "text/html", null);
         }
     }
